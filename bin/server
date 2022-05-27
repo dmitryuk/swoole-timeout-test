@@ -1,0 +1,39 @@
+#!/usr/bin/env php
+<?php
+
+use Swoole\Coroutine;
+use Swoole\Http\Request;
+use Swoole\Http\Response;
+use Swoole\Http\Server as SwooleServer;
+use Swoole\Server\Task;
+
+set_time_limit(0);
+require __DIR__ . '/../vendor/autoload.php';
+$server = new SwooleServer('0.0.0.0', '80');
+$server->set([
+    'task_worker_num' => 2,
+    'task_enable_coroutine' => true
+]);
+$server->on('start', function (SwooleServer $server) {
+    $server->task('anydata');
+});
+
+$outputFile = tempnam(sys_get_temp_dir(), 'example');
+
+$server->on('request', function (Request $swRequest, Response $swResponse) use ($outputFile) {
+    $swResponse->end(file_get_contents($outputFile));
+});
+
+$server->on('task', function (SwooleServer $server, Task $task) use ($outputFile) {
+    while (true) {
+        sleep(5);
+        go(function () use ($outputFile) {
+            file_put_contents($outputFile, 'before_co<br>' . PHP_EOL, FILE_APPEND);
+            Coroutine::sleep(1);
+            file_put_contents($outputFile, 'end_co<br>' . PHP_EOL, FILE_APPEND);
+        });
+        file_put_contents($outputFile, 'after_co<br>' . PHP_EOL, FILE_APPEND);
+    }
+});
+
+$server->start();

@@ -1,0 +1,7 @@
+{
+    "name": "root/app",
+    "require": {
+        "php": "8.1",
+        "swoole/ide-helper": "^4.8"
+    }
+}
