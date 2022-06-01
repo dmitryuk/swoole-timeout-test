@@ -12,7 +12,9 @@ require __DIR__ . '/../vendor/autoload.php';
 $server = new SwooleServer('0.0.0.0', '80');
 $server->set([
     'task_worker_num' => 2,
-    'task_enable_coroutine' => true
+    'task_enable_coroutine' => true,
+    'hook_flags' => SWOOLE_HOOK_ALL,
+
 ]);
 $server->on('start', function (SwooleServer $server) {
     $server->task('anydata');
